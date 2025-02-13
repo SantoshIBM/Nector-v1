@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+
+  mysql:
+    image: mysql:5.7.27
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - ./store_files:/store_files_mysql/
+      - ./mysql.cnf:/etc/mysql/mysql.cnf
+
+  airflow-init:
+    image: nectar/docker-airflow:latest
+    depends_on:
+      - postgres
+      - mysql
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=Local
+    volumes:
+      - ./dags:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./store_files:/usr/local/airflow/store_files_airflow
+      - ./sql_files:/usr/local/airflow/sql_files
+    command: ["bash", "-c", "airflow db init && airflow users create --username admin --firstname Santosh --lastname Konda --role Admin --email santosh244ster@gmail.com -p password"] #Create admin user during initialization
+
+  webserver:
+    image: nectar/docker-airflow:latest
+    restart: always
+    depends_on:
+      - airflow-init
+      - postgres
+      - mysql
+    environment:
+      - INSTALL_MYSQL=y
+      - LOAD_EX=n
+      - EXECUTOR=Local
+      - AIRFLOW__SMTP__SMTP_HOST=smtp.gmail.com
+      - AIRFLOW__SMTP__SMTP_USER=santosh244ster@gmail.com
+      - AIRFLOW__SMTP__SMTP_PASSWORD=hdwiondmyyobhlto
+      - AIRFLOW__SMTP__SMTP_PORT=587
+      - AIRFLOW__SMTP__SMTP_MAIL_FROM=app-nectar
+      - AIRFLOW__CORE__FERNET_KEY=TvYi8ve-ygb8oY_4eBp0Lij6cI7uThLbm_BRAaOICqs=
+      
+    volumes:
+      - ./dags:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./store_files:/usr/local/airflow/store_files_airflow
+      - ./sql_files:/usr/local/airflow/sql_files
+      - ./templates:/usr/local/lib/python3.11/site-packages/airflow/www/templates  # Mount templates directory
+      - ./static:/usr/local/lib/python3.11/site-packages/airflow/www/static  # Mount static assets directory
+      - ./config/airflow.cfg:/usr/local/airflow/airflow.cfg
+      - airflow_db:/usr/local/airflow
+      - airflow_logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  redis:
+    image: 'redis:5.0.6'
+
+# Define Volumes (Outside the 'services' block)
+volumes:
+  airflow_db:
+  airflow_logs:
+  
+

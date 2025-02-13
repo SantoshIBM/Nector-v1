@@ -1,0 +1,73 @@
+commands:
+
+docker images 
+
+docker ps
+
+docker-compose -f .\docker-compose-LocalExecutor-v3.yml down 
+
+If OpenSSL is not available on your system, you can use an alternative method in PowerShell:
+Open PowerShell
+Run this command: -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 30 | % {[char]$_})
+
+re-building a new image"
+docker build --pull --tag nectar/docker-airflow:latest .
+
+After rebuilding the image, remember to update your services with:docker-compose -f docker-compose-LocalExecutor-v3.yml up -d --force-recreate
+
+docker-compose -f .\docker-compose-LocalExecutor-v3.yml logs webserver >status.txt - To view webserver start up logs
+
+Airflow container navigation:
+docker exec -it 8b94fae7a1a7 /bin/bash
+
+To launch airflow webserver container using entrypoint.sh file: Use this command instead of plain container launch so you can override airflow.cfg config with entrypoint.sh
+
+docker exec -it 8b94fae7a1a7 sh -c "/entrypoint.sh /bin/bash"
+
+We modified the compose file with port forwarding under postgres
+ports:
+            - "5432:5432"
+ 
+https://stackoverflow.com/questions/37694987/connecting-to-postgresql-in-a-docker-container-from-outside
+
+
+command to intialize database:
+docker-compose -f docker-compose-LocalExecutor-v3.yml run --rm webserver airflow db init
+
+
+
+docker-compose -f .\docker-compose-LocalExecutor-v3.yml up airflow-init
+docker-compose -f .\docker-compose-LocalExecutor-v3-v3.yml down
+docker-compose -f .\docker-compose-LocalExecutor-v3-v3.yml up -d
+airflow users create \
+    --username admin \
+    --firstname Santosh \
+    --lastname Konda \
+    --role Admin \
+    --email santosh244ster@gmail.com
+	
+To check the database webserver is conectdd to - use below command under airflow container.
+airflow config get-value database sql_alchemy_conn
+
+Generated Fernet Key TvYi8ve-ygb8oY_4eBp0Lij6cI7uThLbm_BRAaOICqs=
+
+
+The Airflow metadata database file is typically located at /usr/local/airflow/airflow.db inside the Docker container. You can confirm this by running:
+docker exec -it <container_name> airflow config get-value database sql_alchemy_conn
+
+
+Use the docker cp command to copy the database file from your container to your Windows host:
+docker cp 3e2c44c6fd69:/usr/local/airflow/airflow.db ./airflow.db
+
+
+
+Customizing UI Templates:
+cd /usr/local/lib/python3.11/site-packages/airflow/www/
+
+docker cp d15db691a6a0:/usr/local/lib/python3.11/site-packages/airflow/www/templates ./templates
+docker cp d15db691a6a0:/usr/local/lib/python3.11/site-packages/airflow/www/static ./static
+
+
+
+
+
